@@ -1,0 +1,37 @@
+# Файлы и папки операционной системы
+.DS_Store
+Thumbs.db
+
+# Файлы редактора
+.idea
+*.sublime*
+.vscode
+
+# Вспомогательные файлы
+*.log*
+node_modules/
+
+# Макеты
+*.psd
+*.ai
+*.tif
+*.sketch
+
+#Шрифты
+*.ttf
+*.eot
+*.woff
+*.woff2
+*.otf
+
+#Архивы
+*.zip
+*.7z
+*.rar
+
+#Прочее
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
