@@ -45,7 +45,6 @@ body {
   top: 50%;
   transform-origin: 100%;
   transform: rotate(90deg);
-  transition: all 0.5s ease-in-out;
 }
 
 .hand--hour {
@@ -58,4 +57,5 @@ body {
 .hand--second {
   height: 2px;
   top: calc(50% + 2px);
+  transition: all 0.5s ease-in-out;
 }

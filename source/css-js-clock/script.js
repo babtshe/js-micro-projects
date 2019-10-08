@@ -10,6 +10,12 @@
     const now = new Date();
     const seconds = now.getSeconds();
     const secondsDegrees = seconds * 6 + OFFSET;
+    if (secondsHandElement.style.getPropertyValue('transition')) {
+      secondsHandElement.style.removeProperty('transition');
+    }
+    if (secondsDegrees === 90 || !secondsHandElement.style.getPropertyValue('transform')) {
+      secondsHandElement.style.transition = 'none';
+    }
     secondsHandElement.style.transform = `rotate(${secondsDegrees}deg)`;
 
     const minutes = now.getMinutes();
@@ -17,8 +23,8 @@
     minutesHandElement.style.transform = `rotate(${minutesDegrees}deg)`;
 
     const hours = now.getHours();
-    const hoursDegrees = hours * 30 + OFFSET;
+    const hoursDegrees = Math.floor((hours + minutes / 60) * 30) + OFFSET;
     hoursHandElement.style.transform = `rotate(${hoursDegrees}deg)`;
   };
-  setInterval(setDate, 100);
+  setInterval(setDate, 1000);
 })();
