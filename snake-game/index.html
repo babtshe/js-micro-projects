@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+    }
+
+    canvas {
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    class Game {
+      constructor(fps = 10, gridSize = 10) {
+        this.initialState = {
+          playerPosition: {x: 10, y: 10,},
+          targetPosition: {x: 15, y: 15,},
+          velocity: {x: 1, y: 0,},
+          tailLength: 5,
+          trail: [],
+          score: 0
+        };
+        this.interval = null;
+        this.tileCount = null;
+        this.fps = fps;
+        this.gridSize = gridSize;
+        this.init();
+      }
+      init() {
+        const canvas = document.createElement('canvas');
+        const renderedCanvas = document.body.appendChild(canvas);
+        this.ctx = renderedCanvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', this.resize.bind(this));
+        this.setState(this.initialState);
+        this.addListeners();
+      }
+      resize() {
+        const smallestDimension = Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 400);
+        this.ctx.canvas.width  = smallestDimension;
+        this.ctx.canvas.height = smallestDimension;
+        this.tileCount = Math.floor(smallestDimension / this.gridSize);
+        this.reset();
+      }
+      addListeners() {
+        const onKeydown = (evt) => {
+          evt.preventDefault()
+          switch(evt.code) {
+            case 'ArrowLeft':
+              if (this.state.velocity.x === 0) {
+                this.setState({velocity:{x:-1,y:0}});
+              }
+              break;
+            case 'ArrowUp':
+              if (this.state.velocity.y === 0) {
+                this.setState({velocity:{x:0,y:-1}});
+              }
+              break;
+            case 'ArrowRight':
+              if (this.state.velocity.x === 0) {
+                this.setState({velocity:{x:1,y:0}});
+              }
+              break;
+            case 'ArrowDown':
+              if (this.state.velocity.y === 0) {
+                this.setState({velocity:{x:0,y:1}});
+              }
+              break;
+            case 'Space':
+              this.pause();
+              break;
+          }
+        };
+        document.addEventListener('keydown', onKeydown);
+      }
+      setState(state) {
+        this.state = {...this.state, ...state};
+      }
+      start() {
+        this.interval = setInterval(this.tick.bind(this), 1000 / this.fps);
+      }
+      pause() {
+        if (this.interval) {
+          console.log('paused');
+          this.interval = clearInterval(this.interval);
+        } else {
+          this.start();
+        }
+      }
+      end() {
+        this.interval = clearInterval(this.interval);
+        const GAME_OVER_TEXT = 'GAME OVER';
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(0,0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '40px sans-serif';
+        let textWidth = this.ctx.measureText(GAME_OVER_TEXT).width;
+        this.ctx.fillText(GAME_OVER_TEXT, (this.ctx.canvas.width / 2) - (textWidth / 2), this.ctx.canvas.height / 2 );
+        this.ctx.font = '20px sans-serif'
+        const scoreText = `Your score: ${this.state.score}`;
+        textWidth = this.ctx.measureText(scoreText).width;
+        this.ctx.fillText(scoreText, (this.ctx.canvas.width / 2) - (textWidth / 2), this.ctx.canvas.height / 2 + 40);
+        this.reset();
+      }
+      reset() {
+        this.setState(this.initialState);
+      }
+      tick() {
+        const setPosition = () => {
+          const position = {
+            x: this.state.playerPosition.x,
+            y: this.state.playerPosition.y,
+          };
+          position.x += this.state.velocity.x;
+          position.y += this.state.velocity.y;
+          if (position.x < 0) {
+            position.x = this.tileCount - 1;
+          }
+          if (position.x > this.tileCount - 1) {
+            position.x = 0;
+          }
+          if (position.y < 0) {
+            position.y = this.tileCount - 1;
+          }
+          if (position.y > this.tileCount - 1) {
+            position.y = 0;
+          }
+          this.setState({playerPosition: position});
+        };
+
+        setPosition();
+
+
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(0,0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+        this.ctx.fillStyle = 'green';
+        for (const dot of this.state.trail) {
+          this.ctx.fillRect(dot.x * this.gridSize, dot.y * this.gridSize, this.gridSize - 2, this.gridSize - 2);
+          if (dot.x === this.state.playerPosition.x && dot.y === this.state.playerPosition.y) {
+            this.end();
+            return;
+          }
+        }
+
+        const trail = this.state.trail;
+        trail.push(this.state.playerPosition);
+
+        while(trail.length > this.state.tailLength) {
+          trail.shift();
+        }
+        this.setState({trail});
+
+        if (this.state.targetPosition.x === this.state.playerPosition.x &&
+        this.state.targetPosition.y === this.state.playerPosition.y) {
+          this.setState({
+            tailLength: this.state.tailLength + 1,
+            score: this.state.score + 1,
+            targetPosition: {
+              x: Math.floor(Math.random() * this.tileCount),
+              y: Math.floor(Math.random() * this.tileCount),
+            }
+          })
+        }
+
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '20px sans-serif';
+        this.ctx.fillText(`Score: ${this.state.score}`, 20, 20);
+
+        this.ctx.fillStyle = 'red';
+        this.ctx.fillRect(this.state.targetPosition.x * this.gridSize,
+        this.state.targetPosition.y * this.gridSize, this.gridSize - 2, this.gridSize - 2);
+      }
+    }
+
+    const onLoad = () => {
+      const game = new Game();
+      game.start();
+    };
+
+    window.addEventListener('DOMContentLoaded', onLoad);
+  </script>
+</body>
+</html>
